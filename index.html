@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GST Registration Engagement Form - Ashfan & Associates</title>
+<style>
+  :root{--blue:#0b3d91;--gold:#c8a23a;--bg:#f3f6fb;--red:#d93025;--green:#188038}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:#222}
+  header{background:var(--blue);color:#fff;text-align:center;padding:18px 12px;border-bottom:4px solid var(--gold)}
+  header img{height:70px;background:#fff;border-radius:50%;padding:4px}
+  header h1{margin:8px 0 0;font-size:24px}
+  header .tag{color:var(--gold);font-weight:600;letter-spacing:1px}
+  header .addr{font-size:13px;margin-top:6px;opacity:.95}
+  main{max-width:640px;margin:auto;padding:14px}
+  .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #0001}
+  h2{font-size:17px;margin:0 0 12px;color:var(--blue)}
+  .fee{font-size:18px;text-align:center;background:#fff8e1;border:1px dashed var(--gold)}
+  label{display:block;font-weight:600;margin:10px 0 4px;font-size:14px}
+  .req{color:var(--red)}
+  input[type=text],input[type=tel]{width:100%;padding:11px;border:1px solid #bbb;border-radius:8px;font-size:16px}
+  .doc{border:1px solid #e0e0e0;border-radius:10px;padding:10px;margin-bottom:10px}
+  .doc .title{font-weight:600;font-size:14px}
+  .btns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .btns label.b,button{margin:0;padding:10px 14px;border-radius:8px;border:0;font-size:14px;cursor:pointer;background:var(--blue);color:#fff;font-weight:600;display:inline-block}
+  .btns label.b.alt{background:#5f6b7a}
+  .btns input{display:none}
+  .status{font-size:13px;margin-top:6px;color:#777}
+  .status.ok{color:var(--green)}
+  .thumb{max-height:70px;border-radius:6px;margin-top:6px;display:block}
+  .actions{display:flex;gap:10px;flex-direction:column}
+  .actions button{padding:14px;font-size:16px}
+  .wa{background:#25D366}
+  .save{background:var(--gold);color:#222}
+  .msg{text-align:center;font-size:13px;color:#555;margin:8px 0}
+  footer{text-align:center;font-size:12px;color:#777;padding:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <!-- Replace logo.png with your CA logo file (same folder) -->
+  <img src="logo.png" alt="CA Logo" onerror="this.style.display='none'">
+  <h1>Ashfan &amp; Associates</h1>
+  <div class="tag">Chartered Accountants</div>
+  <div class="addr">Talves Road, Udgir<br>📞 9975797268 / 7685908888</div>
+</header>
+
+<main>
+  <div class="card fee"><b>GST Registration Engagement</b><br>Professional Fees: <b>₹ 3,000</b></div>
+
+  <form id="f" class="card">
+    <h2>Client Details</h2>
+    <label>First and Last Name <span class="req">*</span></label>
+    <input type="text" id="name" required placeholder="e.g. Rahul Patil">
+    <label>Business Name <span class="req">*</span></label>
+    <input type="text" id="biz" required placeholder="Business / Shop name">
+    <label>Phone Number <span class="req">*</span></label>
+    <input type="tel" id="phone" required maxlength="10" pattern="[0-9]{10}" placeholder="10 digit mobile number">
+  </form>
+
+  <div class="card">
+    <h2>Mandatory Documents <span class="req">*</span></h2>
+    <div id="mand"></div>
+  </div>
+
+  <div class="card">
+    <h2>Optional Documents</h2>
+    <div id="opt"></div>
+  </div>
+
+  <div class="card">
+    <label style="display:flex;gap:8px;align-items:flex-start;font-weight:400">
+      <input type="checkbox" id="agree" style="margin-top:4px">
+      I confirm that the information and documents are correct and I agree to pay professional fees of ₹3,000 for GST Registration.
+    </label>
+  </div>
+
+  <div class="actions">
+    <button class="save" onclick="saveDraft()">💾 Save Form</button>
+    <button class="wa" onclick="sendWA()">📤 Send on WhatsApp</button>
+  </div>
+  <div class="msg" id="msg"></div>
+</main>
+
+<footer>© Ashfan &amp; Associates, Chartered Accountants, Udgir</footer>
+
+<script>
+const FIRM_WA = "919975797268";   // WhatsApp number that receives the form (with 91)
+const MAND = [
+  ["pan","PAN"],["aadhar_front","Aadhar Front"],["aadhar_back","Aadhar Back"],
+  ["photo","Photo"],["light_bill","Shop Light Bill"],["shop_act","Shop Act License"]
+];
+const OPT = [
+  ["namuna8","Namuna Number 8"],["prop_tax","Property Tax Receipt"],
+  ["reg_cert","Registration Certificate"],["other","Any Other Document"]
+];
+const files = {};   // key -> {name, dataUrl}
+
+function build(list, el){
+  document.getElementById(el).innerHTML = list.map(([k,t]) => `
+    <div class="doc">
+      <div class="title">${t}</div>
+      <div class="btns">
+        <label class="b">📷 Take Photo<input type="file" accept="image/*" capture="environment" onchange="pick('${k}','${t}',this)"></label>
+        <label class="b alt">📁 Upload<input type="file" accept="image/*,application/pdf" onchange="pick('${k}','${t}',this)"></label>
+      </div>
+      <div class="status" id="s_${k}">Not attached</div>
+      <img class="thumb" id="t_${k}" style="display:none">
+    </div>`).join("");
+}
+build(MAND,"mand"); build(OPT,"opt");
+
+// Compress images so WhatsApp sharing is fast
+function toData(file){
+  return new Promise(res=>{
+    const r = new FileReader();
+    r.onload = e=>{
+      if(file.type==="application/pdf") return res({dataUrl:e.target.result,type:file.type,ext:"pdf"});
+      const img = new Image();
+      img.onload=()=>{
+        const max=1600, s=Math.min(1, max/Math.max(img.width,img.height));
+        const c=document.createElement("canvas");
+        c.width=img.width*s; c.height=img.height*s;
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        res({dataUrl:c.toDataURL("image/jpeg",0.75),type:"image/jpeg",ext:"jpg"});
+      };
+      img.src=e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+async function pick(k,title,inp){
+  if(!inp.files[0]) return;
+  const d = await toData(inp.files[0]);
+  files[k] = {...d,title};
+  const s=document.getElementById("s_"+k); s.textContent="✔ Attached"; s.className="status ok";
+  const t=document.getElementById("t_"+k);
+  if(d.ext==="pdf"){t.style.display="none"; s.textContent="✔ PDF attached";}
+  else{t.src=d.dataUrl; t.style.display="block";}
+}
+
+function val(id){return document.getElementById(id).value.trim();}
+function validate(){
+  if(!val("name")||!val("biz")) return "Please enter Name and Business Name.";
+  if(!/^[0-9]{10}$/.test(val("phone"))) return "Please enter a valid 10 digit phone number.";
+  const miss = MAND.filter(([k])=>!files[k]).map(([,t])=>t);
+  if(miss.length) return "Mandatory documents missing: "+miss.join(", ");
+  if(!document.getElementById("agree").checked) return "Please tick the confirmation box.";
+  return null;
+}
+function say(t,ok){const m=document.getElementById("msg");m.textContent=t;m.style.color=ok?"#188038":"#d93025";}
+
+// Save draft in the phone browser
+function saveDraft(){
+  const data={name:val("name"),biz:val("biz"),phone:val("phone"),files};
+  try{localStorage.setItem("gstDraft",JSON.stringify(data)); say("✔ Form saved on this device. You can come back and continue later.",true);}
+  catch(e){localStorage.setItem("gstDraft",JSON.stringify({name:data.name,biz:data.biz,phone:data.phone}));
+    say("Details saved (documents too large to store; please re-attach later).",false);}
+}
+(function load(){
+  const d=JSON.parse(localStorage.getItem("gstDraft")||"null"); if(!d) return;
+  document.getElementById("name").value=d.name||""; document.getElementById("biz").value=d.biz||"";
+  document.getElementById("phone").value=d.phone||"";
+  Object.entries(d.files||{}).forEach(([k,v])=>{
+    files[k]=v; const s=document.getElementById("s_"+k); if(!s) return;
+    s.textContent="✔ Attached (saved)"; s.className="status ok";
+    if(v.ext!=="pdf"){const t=document.getElementById("t_"+k);t.src=v.dataUrl;t.style.display="block";}
+  });
+})();
+
+function dataToFile(v,name){
+  const [h,b]=v.dataUrl.split(","); const bin=atob(b); const u=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  return new File([u],name+"."+v.ext,{type:v.type});
+}
+
+async function sendWA(){
+  const err=validate(); if(err){say(err,false);return;}
+  const text=`*GST Registration Engagement*\nFirm: Ashfan & Associates\nFees: ₹3,000\n\n`+
+    `Name: ${val("name")}\nBusiness: ${val("biz")}\nPhone: ${val("phone")}\n\n`+
+    `Documents attached: ${Object.values(files).map(f=>f.title).join(", ")}\n\n`+
+    `I confirm the details and agree to the fees.`;
+  const list=Object.entries(files).map(([k,v])=>dataToFile(v,v.title.replace(/\s+/g,"_")));
+  // Mobile: share text + all documents; client picks WhatsApp -> Ashfan & Associates
+  if(navigator.canShare && navigator.canShare({files:list})){
+    try{
+      await navigator.share({files:list,text,title:"GST Registration - "+val("name")});
+      say("✔ Shared. Please select WhatsApp and send to "+FIRM_WA.slice(2)+".",true); return;
+    }catch(e){ if(e.name==="AbortError") return; }
+  }
+  // Fallback: WhatsApp text only + download documents to attach manually
+  list.forEach(f=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;a.click();});
+  window.open(`https://wa.me/${FIRM_WA}?text=${encodeURIComponent(text)}`,"_blank");
+  say("Your device does not support direct file sharing. Documents were downloaded; please attach them in the WhatsApp chat.",false);
+}
+</script>
+</body>
+</html>
